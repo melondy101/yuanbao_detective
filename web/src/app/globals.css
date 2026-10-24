@@ -120,3 +120,19 @@ input,
   border-color: var(--rule);
   background: #ffffff;
 }
+
+/* 加载态动画：打字机光标 / 呼吸点（档案风，克制；prefers-reduced-motion 全局兜底关闭） */
+@keyframes caret-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.caret-blink {
+  animation: caret-blink 1.1s steps(1) infinite;
+}
+@keyframes dot-breathe {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+.dot-breathe {
+  animation: dot-breathe 1.4s ease-in-out infinite;
+}

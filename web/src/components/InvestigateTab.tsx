@@ -58,7 +58,7 @@ const ERROR_UI: Record<string, ErrorUi> = {
   },
 };
 
-/* 卷宗加载态：静态编号步进 + 计时（档案感，不表演入场） */
+/* 卷宗加载态：编号步进 + 计时 + 打字机光标 / 四段进度条 / 呼吸点（档案感，动效克制） */
 function DossierLoader({
   question,
   phase,
@@ -77,10 +77,24 @@ function DossierLoader({
       className="mt-5 rounded-lg border border-[var(--rule)] bg-[var(--paper)] p-5"
     >
       <div className="flex items-baseline justify-between gap-3 border-b border-[var(--rule-soft)] pb-3">
-        <p className="font-serif text-[15px] leading-6">案卷调取中</p>
+        <p className="font-serif text-[15px] leading-6">
+          案卷调取中
+          <span aria-hidden="true" className="caret-blink ml-1.5 inline-block h-[15px] w-[2px] translate-y-[2px] bg-[var(--ink)]" />
+        </p>
         <span className="pill pill-neutral tabular-nums">
           已进行 {mm}:{ss}
         </span>
+      </div>
+      <div aria-hidden="true" className="mt-3 flex gap-1.5">
+        {PHASES.map((p, i) => (
+          <span
+            key={p.title}
+            className={
+              "h-[3px] flex-1 rounded-full transition-colors duration-700 " +
+              (i < phase ? "bg-[var(--ink)]" : i === phase ? "dot-breathe bg-[var(--ochre)]" : "bg-[var(--rule)]")
+            }
+          />
+        ))}
       </div>
       <p className="mt-3 truncate text-[13px] leading-6 text-[var(--muted)]" title={question}>
         正在调查：{question}
@@ -107,6 +121,9 @@ function DossierLoader({
               >
                 {p.title}
               </span>
+              {state === "active" && (
+                <span aria-hidden="true" className="dot-breathe h-1.5 w-1.5 shrink-0 self-center rounded-full bg-[var(--ochre)]" />
+              )}
               <span className="text-xs text-[#a8a9a4]">{p.detail}</span>
               <span className="sr-only">
                 {state === "done" ? "（已完成）" : state === "active" ? "（进行中）" : "（待进行）"}
