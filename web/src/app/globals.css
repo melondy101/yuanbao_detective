@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+/* Design language: 印刷档案风（Lune 式参考语言，应用于 AI 侦探社）
+   暖白纸底 + 白卡片 + 1px 细线；颜色只做分区编码；近黑主按钮 */
+:root {
+  --bg: #fafaf8; /* 页面：暖白纸 */
+  --paper: #ffffff; /* 卡片 */
+  --ink: #171716; /* 近黑正文 */
+  --muted: #6b6c67; /* 冷灰次级（白/暖白底上 ≥4.5:1） */
+  --rule: #e4e5e1; /* 细线 */
+  --rule-soft: #eeeee9;
+  --blue: #536b83; /* 调查 · dusty blue */
+  --teal: #3f7774; /* 事实 · teal */
+  --ochre: #8a6b2d; /* 待验证 / 冲突 · ochre */
+  --plum: #765567; /* 推断 / 盯梢 · plum */
+  --rust: #8a4a3a; /* 错误 */
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--ink);
+  --font-serif:
+    Georgia, "Iowan Old Style", "Times New Roman", "Songti SC", STSong, SimSun, serif;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    "PingFang SC",
+    "Hiragino Sans GB",
+    "Microsoft YaHei",
+    sans-serif;
+}
+
+a,
+button,
+select,
+textarea,
+input,
+[role="tab"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: rgba(83, 107, 131, 0.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (pointer: fine) {
+  html {
+    overscroll-behavior: none;
+  }
+}
+
+/* 分区编码药丸：小号、有色文字、极淡同色底、细边 */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 18px;
+  letter-spacing: 0.02em;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.pill-blue {
+  color: #43597a;
+  border-color: rgba(83, 107, 131, 0.32);
+  background: rgba(83, 107, 131, 0.07);
+}
+.pill-teal {
+  color: #35615f;
+  border-color: rgba(63, 119, 116, 0.32);
+  background: rgba(63, 119, 116, 0.07);
+}
+.pill-ochre {
+  color: #73551f;
+  border-color: rgba(138, 107, 45, 0.32);
+  background: rgba(138, 107, 45, 0.08);
+}
+.pill-plum {
+  color: #64455a;
+  border-color: rgba(118, 85, 103, 0.32);
+  background: rgba(118, 85, 103, 0.07);
+}
+.pill-rust {
+  color: #7a3f31;
+  border-color: rgba(138, 74, 58, 0.32);
+  background: rgba(138, 74, 58, 0.07);
+}
+.pill-neutral {
+  color: var(--muted);
+  border-color: var(--rule);
+  background: #ffffff;
+}
