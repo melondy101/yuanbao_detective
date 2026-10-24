@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { InvestigationReport } from "@/lib/types";
+import { CRED_LABEL, CRED_PILL, distinctDomains } from "@/lib/credibility";
+import type { InvestigationReport, SourceRef } from "@/lib/types";
 
 const CONF_LABEL: Record<string, string> = { high: "高置信", medium: "中置信", low: "低置信" };
 const CONF_PILL: Record<string, string> = {
@@ -25,6 +26,27 @@ function Refs({ ids }: { ids: number[] }) {
           {n}
         </a>
       ))}
+    </span>
+  );
+}
+
+/** 事实条目的交叉验证印章：≥2 个独立注册域支撑 → 青色「多源交叉」章；仅单来源 → 中性「单一来源」标 */
+function FactSeal({ sources, refs }: { sources: SourceRef[]; refs: number[] }) {
+  if (!refs.length) return null;
+  const domains = distinctDomains(refs.map((n) => sources[n - 1]?.url ?? ""));
+  if (domains >= 2) {
+    return (
+      <span
+        className="pill pill-teal ml-1.5 align-middle"
+        title={`该事实由 ${domains} 个独立域名的来源相互印证`}
+      >
+        交叉验证 · {domains} 源
+      </span>
+    );
+  }
+  return (
+    <span className="pill pill-neutral ml-1.5 align-middle" title="该事实仅有一个来源支撑">
+      单一来源
     </span>
   );
 }
@@ -62,8 +84,9 @@ export default function ReportView({
   onAddWatch: (question: string) => void;
 }) {
   const [added, setAdded] = useState(false);
-  const { evidence, meta } = report;
+  const { evidence, meta, selfEval } = report;
   const emptyResult = evidence.fact.length === 0 && evidence.inference.length === 0;
+  const crossPct = selfEval.facts > 0 ? Math.round((selfEval.crossVerifiedFacts / selfEval.facts) * 100) : 0;
 
   return (
     <article className="space-y-5">
@@ -91,6 +114,7 @@ export default function ReportView({
                 <li key={i}>
                   {f.text}
                   <Refs ids={f.refs} />
+                  <FactSeal sources={report.sources} refs={f.refs} />
                 </li>
               ))}
             </ul>
@@ -151,6 +175,62 @@ export default function ReportView({
         </div>
       )}
 
+      {/* 调查自评：反幻觉指标（确定性统计，对齐「敢说不知道」评审维度） */}
+      <div className="rounded-lg border border-[var(--rule)] bg-[var(--paper)] p-4">
+        <SectionHead
+          num="05"
+          pill="pill-teal"
+          pillText="自评"
+          title="调查自评 · 反幻觉指标"
+          hint="确定性统计，非模型自述"
+        />
+        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-[var(--rule)] bg-[var(--rule)] sm:grid-cols-4">
+          <div className="bg-[var(--paper)] px-3 py-2.5 text-center">
+            <b className="block font-serif text-lg font-normal leading-7 tabular-nums">
+              {selfEval.independentDomains}
+              <span className="text-xs font-normal text-[var(--muted)]"> / {selfEval.sources}</span>
+            </b>
+            <span className="mt-0.5 block text-[11px] leading-4 text-[var(--muted)]">独立域名 / 来源</span>
+          </div>
+          <div className="bg-[var(--paper)] px-3 py-2.5 text-center">
+            <b className="block font-serif text-lg font-normal leading-7 tabular-nums">
+              {selfEval.crossVerifiedFacts}
+              <span className="text-xs font-normal text-[var(--muted)]"> / {selfEval.facts}</span>
+            </b>
+            <span className="mt-0.5 block text-[11px] leading-4 text-[var(--muted)]">
+              事实多源交叉（{crossPct}%）
+            </span>
+          </div>
+          <div className="bg-[var(--paper)] px-3 py-2.5 text-center">
+            <b className="block font-serif text-lg font-normal leading-7 tabular-nums">
+              {selfEval.unverified}
+              <span className="text-xs font-normal text-[var(--muted)]"> 项 · {selfEval.abstainRate}%</span>
+            </b>
+            <span className="mt-0.5 block text-[11px] leading-4 text-[var(--muted)]">主动弃答（敢说不知道）</span>
+          </div>
+          <div className="bg-[var(--paper)] px-3 py-2.5 text-center">
+            <b className="block font-serif text-lg font-normal leading-7 tabular-nums">{selfEval.droppedBadRefs}</b>
+            <span className="mt-0.5 block text-[11px] leading-4 text-[var(--muted)]">越界引用拦截</span>
+          </div>
+        </div>
+        <p className="mt-3 flex flex-wrap items-center gap-1.5 text-xs leading-5 text-[var(--muted)]">
+          <span className="shrink-0">可信来源构成：</span>
+          {selfEval.credMix.length ? (
+            selfEval.credMix.map(({ tier, count }) => (
+              <span key={tier} className={`pill ${CRED_PILL[tier]}`}>
+                {CRED_LABEL[tier]} ×{count}
+              </span>
+            ))
+          ) : (
+            <span>无来源</span>
+          )}
+          {selfEval.vrSources > 0 && <span className="pill pill-teal">权威 VR 信源 ×{selfEval.vrSources}</span>}
+        </p>
+        <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
+          口径：同一事实需 ≥2 个独立域名的来源印证才盖「交叉验证」章；弃答 = 查不到而明说的部分，不折算成答案；越界引用 = 模型编造的来源编号，一律拦截不计入报告。
+        </p>
+      </div>
+
       {/* 盯梢入口 */}
       <div className="flex items-center justify-between gap-3 rounded-lg border border-[var(--rule)] bg-[var(--paper)] px-4 py-3">
         <p className="text-[13px] leading-6 text-[var(--muted)]">
@@ -173,7 +253,7 @@ export default function ReportView({
       <details className="rounded-lg border border-[var(--rule)] bg-[var(--paper)] p-4">
         <summary className="cursor-pointer text-sm font-medium">
           <span aria-hidden="true" className="mr-2 text-[11px] tabular-nums text-[var(--muted)]">
-            05
+            06
           </span>
           调查过程 · {report.rounds.length} 轮检索（点击展开）
         </summary>
@@ -199,7 +279,7 @@ export default function ReportView({
       {/* 来源清单 */}
       <div className="rounded-lg border border-[var(--rule)] bg-[var(--paper)] p-4">
         <SectionHead
-          num="06"
+          num="07"
           pill="pill-blue"
           pillText="来源"
           title={`来源清单（${report.sources.length} 条，均可点开）`}
@@ -219,6 +299,7 @@ export default function ReportView({
                 {s.title}
                 <span className="sr-only">（新标签打开）</span>
               </a>
+              <span className={`pill ${CRED_PILL[s.cred]}`}>{CRED_LABEL[s.cred]}</span>
               <span className="text-xs text-[var(--muted)]">
                 {s.site ?? ""}
                 {s.date ? ` · ${s.date}` : ""}

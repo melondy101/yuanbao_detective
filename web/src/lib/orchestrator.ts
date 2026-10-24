@@ -3,6 +3,7 @@
 import { cachedSearchPro } from "./searchCache";
 import { chatJSON } from "./llm";
 import { redlineCheckQuery, filterPagesByRedline } from "./redline";
+import { classifySource, credMix, distinctDomains, registrableDomain } from "./credibility";
 import type {
   ConflictItem,
   FactItem,
@@ -10,6 +11,7 @@ import type {
   InvestigationReport,
   RoundInfo,
   SearchPage,
+  SelfEval,
   SourceRef,
 } from "./types";
 
@@ -124,6 +126,7 @@ export async function investigate(question: string): Promise<InvestigationReport
           site: p.site,
           date: p.date,
           vr: Boolean(p.vr),
+          cred: classifySource(p.url),
         });
       }
     }
@@ -163,18 +166,41 @@ export async function investigate(question: string): Promise<InvestigationReport
     );
   }
 
-  // 校验 refs 越界与空结构，防止模型幻觉编号
+  // 校验 refs 越界与空结构，防止模型幻觉编号（越界编号计入自评的「越界引用拦截」）
   const validId = (n: number) => Number.isInteger(n) && n >= 1 && n <= sources.length;
+  let droppedBadRefs = 0;
+  const pickRefs = (refs: unknown) => {
+    const arr = Array.isArray(refs) ? refs : [];
+    const kept = arr.filter(validId) as number[];
+    droppedBadRefs += arr.length - kept.length;
+    return kept;
+  };
   const facts: FactItem[] = (summary.evidence?.fact ?? [])
-    .map((f) => ({ text: String(f.text ?? ""), refs: (f.refs ?? []).filter(validId) }))
+    .map((f) => ({ text: String(f.text ?? ""), refs: pickRefs(f.refs) }))
     .filter((f) => f.text);
   const inferences: InferenceItem[] = (summary.evidence?.inference ?? [])
     .map((f) => ({ text: String(f.text ?? ""), basis: String(f.basis ?? "") }))
     .filter((f) => f.text);
   const unverified: string[] = (summary.evidence?.unverified ?? []).map(String).filter(Boolean);
   const conflicts: ConflictItem[] = (summary.conflicts ?? [])
-    .map((c) => ({ topic: String(c.topic ?? ""), detail: String(c.detail ?? ""), refs: (c.refs ?? []).filter(validId) }))
+    .map((c) => ({ topic: String(c.topic ?? ""), detail: String(c.detail ?? ""), refs: pickRefs(c.refs) }))
     .filter((c) => c.topic || c.detail);
+
+  // 调查自评（确定性统计，对齐赛道评审「敢说不知道」与调研最佳实践 AR/HR 双指标）
+  const factDomains = (refs: number[]) => distinctDomains(refs.map((n) => sources[n - 1]?.url ?? ""));
+  const crossVerifiedFacts = facts.filter((f) => factDomains(f.refs) >= 2).length;
+  const claimable = facts.length + inferences.length + unverified.length;
+  const selfEval: SelfEval = {
+    sources: sources.length,
+    independentDomains: new Set(sources.map((s) => registrableDomain(s.url)).filter(Boolean)).size,
+    credMix: credMix(sources.map((s) => s.cred)),
+    vrSources: sources.filter((s) => s.vr).length,
+    facts: facts.length,
+    crossVerifiedFacts,
+    unverified: unverified.length,
+    abstainRate: claimable > 0 ? Math.round((unverified.length / claimable) * 100) : 100,
+    droppedBadRefs,
+  };
 
   return {
     question,
@@ -185,6 +211,7 @@ export async function investigate(question: string): Promise<InvestigationReport
     conflicts,
     sourceNotes: String(summary.sourceNotes ?? ""),
     sources,
+    selfEval,
     rounds,
     meta: {
       generatedAt: new Date().toISOString(),
