@@ -24,7 +24,7 @@ export default function Home() {
     const q = new URLSearchParams(window.location.search).get("tab");
     if (q === "watch" || q === "investigate") {
       setTabState(q);
-      document.title = `${tabLabel(q)} · AI 侦探社`;
+      document.title = `${tabLabel(q)} · 元宝探长`;
     }
   }, []);
 
@@ -37,7 +37,7 @@ export default function Home() {
     } catch {
       /* replaceState 不可用时静默降级，仅内存切换 */
     }
-    document.title = `${tabLabel(next)} · AI 侦探社`;
+    document.title = `${tabLabel(next)} · 元宝探长`;
   }, []);
 
   const onKeyDownTabs = useCallback(
@@ -64,7 +64,7 @@ export default function Home() {
     <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col sm:flex-row">
       {/* 左侧固定窄栏：品牌 · 分区导航 · 状态（移动端折叠为顶栏） */}
       <aside className="flex shrink-0 flex-col border-b border-[var(--rule)] px-5 pb-4 pt-5 sm:sticky sm:top-0 sm:h-screen sm:w-56 sm:border-b-0 sm:border-r sm:px-6 sm:py-8">
-        <h1 className="font-serif text-lg leading-7 tracking-wide">AI 侦探社</h1>
+        <h1 className="font-serif text-lg leading-7 tracking-wide">元宝探长</h1>
         <p className="mt-0.5 text-[11px] leading-4 text-[var(--muted)]">腾讯元宝搜索驱动</p>
 
         <nav

@@ -141,13 +141,13 @@ export default function InvestigateTab({ onAddWatch }: { onAddWatch: (question: 
     if (!loading) return;
     setPhase(0);
     setElapsed(0);
-    document.title = "调查中 · AI 侦探社";
+    document.title = "调查中 · 元宝探长";
     const phaseTimer = setInterval(() => setPhase((p) => Math.min(p + 1, PHASES.length - 1)), PHASE_MS);
     const tickTimer = setInterval(() => setElapsed((s) => s + 1), 1000);
     return () => {
       clearInterval(phaseTimer);
       clearInterval(tickTimer);
-      document.title = "深度调查 · AI 侦探社";
+      document.title = "深度调查 · 元宝探长";
     };
   }, [loading]);
 
