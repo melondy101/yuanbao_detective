@@ -2,19 +2,16 @@
 
 本仓库参与 WaytoAGI 1024 切磋大会「侦探赛道」。任何在本仓库工作的 AI Agent（包括但不限于代码编写、文档撰写、搜索调研、工具调用）**必须遵守**以下规则。详细要求见 `docs/侦探赛道要求.md`。
 
-## 〇、仓库现状与速查（2026-10-25 更新）
+## 〇、仓库现状与速查（2026-10-25 收尾更新）
 
-- **⚠️ 会话开始先看「待办」并在对话中主动提醒用户。**
-- **待办（2026-10-25，仅剩 2 个用户手工动作）**：
-  1. **小红书发布**：创作平台草稿已填完（1080p 视频/标题/正文/3 话题卡就绪），用户审核后点「发布」，把笔记链接回填 1024 提交表单「社媒分享链接」栏。文案见 `docs/提交材料/小红书文案.md`。
-  2. **正式提交**：1024 表单已 100% 填完（封面/3 材料/链接/同意项全勾，自动保存），用户确认后点「正式提交」。入口 1024.waytoagi.com/contest/submission，**硬截止 10-25 16:00**（15:00 封板；社媒链接截止后可在作品状态页补填）。
-- **作品**：「元宝探长」（Yuanbao Detective），页面与 README 品牌已统一；功能与 UI 定稿，加载页为「仪式流水线」过渡页。线上 https://yuanbaodetective.vercel.app （Vercel 项目 `yuanbaodetective`，Root Directory=web，git push 即自动部署，Deployment Protection 已关，密钥只存 Vercel 环境变量）。
-- **仓库**：GitHub [melondy101/yuanbao_detective](https://github.com/melondy101/yuanbao_detective)（公开），本地 master 与远端同步；`.env.local` 未入库（提交前已三重验证）。本机 `VERCEL_TOKEN` 环境变量可直接调 Vercel API（改配置不必上面板）。
-- **成片**：以 `docs/提交材料/演示录屏-元宝探长-1080p.mp4`（1920×1080，3:21，含 2.5s 档案风片头卡）为准；旧 720p webm 已删除。
-- **已知坑**：① 盯梢「自动」在应用页面打开期间就运行（不限分区），页面不关会偷检索额度，演示完必须关页面或关「自动盯梢」开关；② `web/.gitignore` 已补 `!.env.example`；③ IAB 文件上传用「分片 base64 注入 input[type=file]」绕过；④ 中文文件名经 cmd 传参会乱码，ffmpeg 转码用 ASCII 文件名；⑤ IAB 自带录屏/截图面在本机不稳，录屏用 Playwright 无头浏览器 + 系统代理 127.0.0.1:10090。
-- **目录**：`agents.md`｜`docs/`（规则、调用账本、调研报告、提交材料、演示留痕）｜`web/`（Next.js 16 + React 19 + Tailwind 4，架构见根目录 `README.md`）。
+- **参赛状态（2026-10-25 15:05 起）**：小红书已发布（笔记 https://www.xiaohongshu.com/explore/6adda54a000000003101f2cd ，审核中）；1024 官方提交已点「正式提交」（状态：待审核，submissionId `HEdga5xDQc7tBHkDZEijyphCeERKVO0B`，队伍=卡片游戏分队）。**无待办**；社媒链接已回填，截止后如需改动走作品状态页。
+- **作品**：「元宝探长」（Yuanbao Detective）。报告含三分法 + 反幻觉三件套（来源可信分级 / 交叉验证印章 / 调查自评卡）+ 证据链地图 + 调查历史；加载页为「仪式流水线」过渡页。线上 https://yuanbaodetective.vercel.app （Vercel 项目 `yuanbaodetective`，Root Directory=web，git push 即自动部署，密钥只存 Vercel 环境变量）。
+- **仓库**：GitHub [melondy101/yuanbao_detective](https://github.com/melondy101/yuanbao_detective)（公开），本地 master 与远端同步；`.env.local` 未入库。本机 `VERCEL_TOKEN` 环境变量可直接调 Vercel API（改配置不必上面板）。
+- **成片**：以 `docs/提交材料/演示录屏-元宝探长-1080p-v2.mp4`（1920×1080，2 分 11 秒含 2.5s 片头卡，含全部新功能）为准；旧版 `-1080p.mp4`（3:21）保留作对照。重录脚本 `%TEMP%\yuanbao-rec\record2.js`（对准 localhost，无需代理）+ `render2.js`（转码拼片头）。
+- **已知坑**：① 盯梢「自动」在应用页面打开期间就运行（不限分区），页面不关会偷检索额度，演示完必须关页面或关「自动盯梢」开关；② IAB 文件上传用「分片 base64 注入 input[type=file]（DataTransfer 组装 File）」绕过；③ 中文文件名经 cmd 传参会乱码，ffmpeg 转码用 ASCII 文件名；④ IAB 截图面不稳，录屏一律 Playwright 无头浏览器（localhost 无需代理）；⑤ 1024 站点多标签会话互踢（409「登录账号已变化」→ 页面卡「正在加载作品」），硬刷新可解，同站勿开多标签操作。
+- **目录**：`AGENTS.md`｜`docs/`（规则、调用账本、调研报告、提交材料、演示留痕）｜`web/`（Next.js 16 + React 19 + Tailwind 4，架构见根目录 `README.md`）。
 - **开发命令**（在 `web/` 下执行）：`npm run dev`（http://localhost:3000）；`npm run build`；`npm run start`。链路自检 `GET /api/smoke`（密钥模板见 `web/.env.example`）。
-- **动手前必读**：搜索调用先读 `docs/接口规则.md`；交付与发布先读 `docs/侦探赛道要求.md`；选题依据 `docs/方向选择-2026-10-24.md`；开源生态与最佳实践 `docs/调研/侦探赛道开源调研-2026-10-25.md`。
+- **动手前必读**：搜索调用先读 `docs/接口规则.md`；交付与发布先读 `docs/侦探赛道要求.md`；开源生态与最佳实践 `docs/调研/侦探赛道开源调研-2026-10-25.md`；可视化方案 `docs/调研/检索路径可视化调研-2026-10-25.md`；功能集成留痕 `docs/演示留痕/功能集成-反幻觉三件套-2026-10-25.md`。
 
 ## 一、赛道红线（最高优先级）
 
