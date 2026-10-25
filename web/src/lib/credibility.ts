@@ -22,6 +22,16 @@ export const CRED_PILL: Record<CredTier, string> = {
   other: "pill-neutral",
 };
 
+/** SVG 色点（证据链地图用）：沿用分区编码色，百科/社区/其他共用冷灰 */
+export const CRED_DOT: Record<CredTier, string> = {
+  gov: "#3f7774",
+  academic: "#536b83",
+  reference: "#6b6c67",
+  media: "#765567",
+  community: "#a8a9a4",
+  other: "#a8a9a4",
+};
+
 const CRED_ORDER: CredTier[] = ["gov", "academic", "reference", "media", "community", "other"];
 
 /** 常见二级伪后缀：取「注册域」时保留三段 */

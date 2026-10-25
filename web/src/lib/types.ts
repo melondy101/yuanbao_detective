@@ -87,6 +87,8 @@ export interface InvestigationReport {
   conflicts: ConflictItem[];
   sourceNotes: string;
   sources: SourceRef[];
+  /** 每轮检索命中的来源编号（证据链地图的「检索线→来源」边）；旧归档数据可能缺失 */
+  roundSources: number[][];
   selfEval: SelfEval;
   rounds: RoundInfo[];
   meta: {

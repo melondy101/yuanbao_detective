@@ -111,12 +111,13 @@ export async function investigate(question: string): Promise<InvestigationReport
     return kept.slice(0, MAX_PAGES_PER_ROUND);
   });
 
-  // 4. 汇总来源清单（按 url 去重、统一编号）
+  // 4. 汇总来源清单（按 url 去重、统一编号），并记录每轮命中的来源编号（证据链地图用）
   const sources: SourceRef[] = [];
   const byUrl = new Map<string, number>();
-  for (const pages of filteredRounds) {
+  const roundSources: number[][] = filteredRounds.map((pages) => {
+    const ids: number[] = [];
     for (const p of pages) {
-      if (sources.length >= MAX_SOURCES) break;
+      if (sources.length >= MAX_SOURCES && !byUrl.has(p.url)) break;
       if (!byUrl.has(p.url)) {
         byUrl.set(p.url, sources.length + 1);
         sources.push({
@@ -129,8 +130,10 @@ export async function investigate(question: string): Promise<InvestigationReport
           cred: classifySource(p.url),
         });
       }
+      ids.push(byUrl.get(p.url)!);
     }
-  }
+    return ids;
+  });
 
   // 5. 交叉比对与成稿
   let summary: SummaryLLMOutput;
@@ -211,6 +214,7 @@ export async function investigate(question: string): Promise<InvestigationReport
     conflicts,
     sourceNotes: String(summary.sourceNotes ?? ""),
     sources,
+    roundSources,
     selfEval,
     rounds,
     meta: {

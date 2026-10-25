@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CRED_LABEL, CRED_PILL, distinctDomains } from "@/lib/credibility";
 import type { InvestigationReport, SourceRef } from "@/lib/types";
+import RetrievalGraph from "./RetrievalGraph";
 
 const CONF_LABEL: Record<string, string> = { high: "高置信", medium: "中置信", low: "低置信" };
 const CONF_PILL: Record<string, string> = {
@@ -231,6 +232,20 @@ export default function ReportView({
         </p>
       </div>
 
+      {/* 证据链地图：问题→检索线→来源→事实/冲突（点击来源节点直达原文） */}
+      {report.rounds.length > 0 && report.sources.length > 0 && (
+        <div className="rounded-lg border border-[var(--rule)] bg-[var(--paper)] p-4">
+          <SectionHead
+            num="06"
+            pill="pill-blue"
+            pillText="地图"
+            title="证据链地图"
+            hint="检索路径与来源印证关系，一图看穿"
+          />
+          <RetrievalGraph report={report} />
+        </div>
+      )}
+
       {/* 盯梢入口 */}
       <div className="flex items-center justify-between gap-3 rounded-lg border border-[var(--rule)] bg-[var(--paper)] px-4 py-3">
         <p className="text-[13px] leading-6 text-[var(--muted)]">
@@ -253,7 +268,7 @@ export default function ReportView({
       <details className="rounded-lg border border-[var(--rule)] bg-[var(--paper)] p-4">
         <summary className="cursor-pointer text-sm font-medium">
           <span aria-hidden="true" className="mr-2 text-[11px] tabular-nums text-[var(--muted)]">
-            06
+            07
           </span>
           调查过程 · {report.rounds.length} 轮检索（点击展开）
         </summary>
@@ -279,7 +294,7 @@ export default function ReportView({
       {/* 来源清单 */}
       <div className="rounded-lg border border-[var(--rule)] bg-[var(--paper)] p-4">
         <SectionHead
-          num="07"
+          num="08"
           pill="pill-blue"
           pillText="来源"
           title={`来源清单（${report.sources.length} 条，均可点开）`}
