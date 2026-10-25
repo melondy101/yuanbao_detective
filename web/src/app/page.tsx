@@ -1,28 +1,32 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import HistoryTab from "@/components/HistoryTab";
 import InvestigateTab from "@/components/InvestigateTab";
 import WatchTab from "@/components/WatchTab";
 import { addTask } from "@/lib/watchStore";
 
-type TabId = "investigate" | "watch";
+type TabId = "investigate" | "watch" | "history";
 
 const TABS: { id: TabId; num: string; label: string }[] = [
   { id: "investigate", num: "01", label: "深度调查" },
   { id: "watch", num: "02", label: "持续盯梢" },
+  { id: "history", num: "03", label: "调查历史" },
 ];
 
-const tabLabel = (id: TabId) => (id === "watch" ? "持续盯梢" : "深度调查");
+const tabLabel = (id: TabId) =>
+  id === "watch" ? "持续盯梢" : id === "history" ? "调查历史" : "深度调查";
 
 export default function Home() {
   const [tab, setTabState] = useState<TabId>("investigate");
   const [watchVersion, setWatchVersion] = useState(0);
+  const [historyVersion, setHistoryVersion] = useState(0);
   const [toast, setToast] = useState("");
 
   // Tab 状态放进 URL，刷新 / 分享 / 前进后退都能还原
   useEffect(() => {
     const q = new URLSearchParams(window.location.search).get("tab");
-    if (q === "watch" || q === "investigate") {
+    if (q === "watch" || q === "investigate" || q === "history") {
       setTabState(q);
       document.title = `${tabLabel(q)} · 元宝探长`;
     }
@@ -57,6 +61,12 @@ export default function Home() {
     addTask(question);
     setWatchVersion((v) => v + 1);
     setToast(`已加入盯梢：「${question}」，到「持续盯梢」查看`);
+    window.setTimeout(() => setToast(""), 4000);
+  }, []);
+
+  const handleReportSaved = useCallback(() => {
+    setHistoryVersion((v) => v + 1);
+    setToast("报告已归档到「调查历史」，随时可重看");
     window.setTimeout(() => setToast(""), 4000);
   }, []);
 
@@ -134,7 +144,7 @@ export default function Home() {
               拆解 · 检索 · 比对 · 成稿，每条结论都带可点开的来源。
             </p>
           </header>
-          <InvestigateTab onAddWatch={handleAddWatch} />
+          <InvestigateTab onAddWatch={handleAddWatch} onReportSaved={handleReportSaved} />
         </div>
 
         <div role="tabpanel" id="panel-watch" aria-labelledby="tab-watch" hidden={tab !== "watch"}>
@@ -147,6 +157,18 @@ export default function Home() {
             </p>
           </header>
           <WatchTab refreshKey={watchVersion} />
+        </div>
+
+        <div role="tabpanel" id="panel-history" aria-labelledby="tab-history" hidden={tab !== "history"}>
+          <header className="mb-7">
+            <h2 className="max-w-xl font-serif text-[26px] leading-[1.35] tracking-[0.01em]">
+              卷宗不会散佚。
+            </h2>
+            <p className="mt-2 text-[13px] leading-6 text-[var(--muted)]">
+              每份调查报告自动归档，随时重看证据链与检索路径，不重新检索、不消耗额度。
+            </p>
+          </header>
+          <HistoryTab refreshKey={historyVersion} onAddWatch={handleAddWatch} />
         </div>
 
         <footer className="mt-14 border-t border-[var(--rule)] pt-4 text-xs leading-5 text-[var(--muted)]">

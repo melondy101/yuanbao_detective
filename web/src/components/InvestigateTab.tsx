@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import ReportView from "./ReportView";
 import Spinner from "./Spinner";
+import { archiveReport } from "@/lib/historyStore";
 import type { InvestigationReport } from "@/lib/types";
 
 const EXAMPLES = [
@@ -232,7 +233,13 @@ function DossierLoader({
   );
 }
 
-export default function InvestigateTab({ onAddWatch }: { onAddWatch: (question: string) => void }) {
+export default function InvestigateTab({
+  onAddWatch,
+  onReportSaved,
+}: {
+  onAddWatch: (question: string) => void;
+  onReportSaved: () => void;
+}) {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [phase, setPhase] = useState(0);
@@ -282,6 +289,9 @@ export default function InvestigateTab({ onAddWatch }: { onAddWatch: (question: 
         return;
       }
       setReport(data as InvestigationReport);
+      // 报告完成即归档到「调查历史」（localStorage，失败不影响展示）
+      archiveReport(data as InvestigationReport);
+      onReportSaved();
     } catch {
       setError("请求没有到达服务端");
       setErrorKind("network");
